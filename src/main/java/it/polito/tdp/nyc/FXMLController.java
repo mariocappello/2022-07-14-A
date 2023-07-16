@@ -1,7 +1,13 @@
 package it.polito.tdp.nyc;
 
 import java.net.URL;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.nyc.model.Arco;
 import it.polito.tdp.nyc.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -41,10 +47,10 @@ public class FXMLController {
     private TableColumn<?, ?> clV2; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBorough"
-    private ComboBox<?> cmbBorough; // Value injected by FXMLLoader
+    private ComboBox<String> cmbBorough; // Value injected by FXMLLoader
 
     @FXML // fx:id="tblArchi"
-    private TableView<?> tblArchi; // Value injected by FXMLLoader
+    private TableView<Arco> tblArchi; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtDurata"
     private TextField txtDurata; // Value injected by FXMLLoader
@@ -58,16 +64,47 @@ public class FXMLController {
     @FXML
     void doAnalisiArchi(ActionEvent event) {
     	
+    	if(model.grafoCreato()==true) {
+    		model.getArchiMaggioriPesoMedio();
+        	List<Arco> listaArchi = model.getArchiMaggioriPesoMedio();
+        	Collections.sort(listaArchi);
+        	for(Arco arco : listaArchi) {
+        		txtResult.appendText(arco.toString());
+        	}
+    	}
+    	else {
+    		txtResult.setText("Grafo non acora creato!");
+    		return;
+    	}
 
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	
+    	String borough= cmbBorough.getValue();
+    	if(borough==null) {
+    		txtResult.setText("Inserire un valore!");
+    		return;
+    	}
+    	
+    	
+    	model.creaGrafo(borough);
+    	txtResult.appendText("GRAFO CREATO!"+"\n");
+    	txtResult.appendText("VERTICI: "+model.getNumeroVertici()+"\n");
+    	txtResult.appendText("ARCHI: "+model.getNumeroArchi()+"\n");
     }
 
     @FXML
     void doSimula(ActionEvent event) {
+    	
+    	double probabilita = Double.parseDouble(txtProb.getText());
+    	int durata = Integer.parseInt(txtDurata.getText());
+    	model.Simula(probabilita, durata);
+    	Map<String,Integer> condivisioni = model.Simula(probabilita, durata);
+    	for(String n : condivisioni.keySet()) {
+    		txtResult.appendText( n+ " "+ condivisioni.get(n)+"\n");
+    	}
 
     }
 
@@ -90,6 +127,7 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	cmbBorough.getItems().addAll(model.getAllBorough());
     }
 
 }
